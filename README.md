@@ -1,4 +1,5 @@
 # Ostinato
+#Test Ok
 
 [![Build Status](https://app.travis-ci.com/pstavirs/ostinato.svg?branch=master)](https://app.travis-ci.com/pstavirs/ostinato)
 
