@@ -42,6 +42,8 @@ PROTOS += \
     sample.proto \
     sign.proto
 
+INCLUDEPATH += C:\PROTO\protobuf-21.6\src
+
 HEADERS = \
     abstractprotocol.h    \
     comboprotocol.h    \

@@ -2,6 +2,7 @@ TEMPLATE = lib
 CONFIG += qt staticlib
 QT += widgets network xml script
 INCLUDEPATH += "../extra/qhexedit2/src"
+INCLUDEPATH += C:\PROTO\protobuf-21.6\src
 LIBS += \
     -lprotobuf
 

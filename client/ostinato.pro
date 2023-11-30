@@ -5,9 +5,11 @@ win32:RC_FILE = ostinato.rc
 macx:ICON = icons/logo.icns
 QT += widgets network script xml svg
 INCLUDEPATH += "../rpc/" "../common/"
+INCLUDEPATH += C:\PROTO\protobuf-21.6\src
 win32 {
     QMAKE_LFLAGS += -static
     CONFIG(debug, debug|release) {
+
         LIBS += -L"../common/debug" -lostprotogui -lostproto
         LIBS += -L"../rpc/debug" -lpbrpc
         POST_TARGETDEPS += \
@@ -30,7 +32,9 @@ win32 {
         "../common/libostproto.a" \
         "../rpc/libpbrpc.a"
 }
-LIBS += -lprotobuf
+#LIBS += -lprotobuf
+
+LIBS += -L"C:/PROTO/protobuf-21.6/INSTALL/lib" -lprotobuf
 LIBS += -L"../extra/qhexedit2/$(OBJECTS_DIR)/" -lqhexedit2
 RESOURCES += ostinato.qrc 
 HEADERS += \

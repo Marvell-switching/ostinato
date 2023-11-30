@@ -35,9 +35,13 @@ typedef enum {
 
     // Statistics
     e_STATISTICS_START,
-
     e_STAT_FRAMES_SENT = e_STATISTICS_START,
     e_STAT_FRAMES_RCVD,
+    e_STAT_OVERSIZE_RCVD,
+    e_STAT_TRIGGERED_1_FRAMES_RCVD,
+    e_STAT_TRIGGERED_2_FRAMES_RCVD,
+    e_STAT_TRIGGERED_3_FRAMES_RCVD,
+    e_STAT_TRIGGERED_4_FRAMES_RCVD,
     e_STAT_BYTES_SENT,
     e_STAT_BYTES_RCVD,
     e_STAT_FRAME_SEND_RATE,
@@ -81,6 +85,11 @@ static const QStringList PortStatName = (QStringList()
 
     << "Sent Frames"
     << "Received Frames"
+    << "Oversize"
+    << "Triggered Frames Received (1)"
+    << "Triggered Frames Received (2)"
+    << "Triggered Frames Received (3)"
+    << "Triggered Frames Received (4)"
     << "Sent Bytes"
     << "Received Bytes"
 

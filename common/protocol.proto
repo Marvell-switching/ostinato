@@ -48,6 +48,12 @@ message StreamCore {
         e_fl_imix = 4;
     }
     
+	enum ForceErrorsMode {
+		e_fe_no_crc = 0;
+        e_fe_no_errors = 1;
+        e_fe_bad_crc = 2;
+    }
+	
     // Basics
     optional string name = 1;
     optional bool is_enabled = 2;
@@ -58,6 +64,9 @@ message StreamCore {
     optional uint32 frame_len = 15 [default = 64];
     optional uint32 frame_len_min = 16 [default = 64];
     optional uint32 frame_len_max = 17 [default = 1518];
+	
+	// Force Errors Mode
+    optional ForceErrorsMode force_errors_mode = 18 [default = e_fe_no_crc];
 }
 
 message StreamControl {
@@ -203,6 +212,18 @@ enum TransmitMode {
     kInterleavedTransmit = 1;
 }
 
+message TriggerTerm {
+	required uint32 offset = 1;
+	required string pattern = 2;
+	optional string mask = 3;
+	optional bool is_not = 4;
+}
+
+message Trigger
+{
+	repeated TriggerTerm terms = 1;
+}
+
 message Port {
     required PortId port_id = 1;
     optional string name = 2;
@@ -217,6 +238,13 @@ message Port {
     optional double speed = 10; // in Mbps
     optional uint32 mtu = 11;
     optional string user_description = 12;
+
+    optional Trigger user_trigger1 = 19;
+    optional Trigger user_trigger2 = 20;
+    optional Trigger user_trigger3 = 21;
+    optional Trigger user_trigger4 = 22;
+    optional bool is_soft_crc = 23; // CRC is calculated by Ostinato (Slan) as opposed to hard CRC calculated by NIC
+
 }
 
 message PortConfigList {
@@ -272,6 +300,13 @@ message PortStats {
     optional uint64 rx_errors = 101;
     optional uint64 rx_fifo_errors = 102;
     optional uint64 rx_frame_errors = 103;
+	
+	optional uint64 triggered_rx_pkts1 = 104;
+	optional uint64 triggered_rx_pkts2 = 105;
+	optional uint64 triggered_rx_pkts3 = 106;
+	optional uint64 triggered_rx_pkts4 = 107;
+
+    optional uint64 rx_oversize = 108;
 }
 
 message PortStatsList {
@@ -293,7 +328,6 @@ message StreamStats {
 
     optional double tx_duration = 3; // in seconds
     optional uint64 latency = 4;     // in nanoseconds
-    optional uint64 jitter = 5;      // in nanoseconds
 
     optional uint64 rx_pkts = 11;
     optional uint64 rx_bytes = 12;
@@ -380,6 +414,8 @@ service OstService {
     rpc startTransmit(PortIdList) returns (Ack);
     rpc stopTransmit(PortIdList) returns (Ack);
 
+    rpc singlePacketTransmit(PortIdList) returns (Ack);
+	
     rpc startCapture(PortIdList) returns (Ack);
     rpc stopCapture(PortIdList) returns (Ack);
     rpc getCaptureBuffer(PortId) returns (CaptureBuffer);

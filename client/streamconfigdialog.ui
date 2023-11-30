@@ -44,7 +44,16 @@ QLineEdit:enabled[inputMask = &quot;HH HH HH HH HH HH; &quot;] { background-colo
       <string/>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
+     </property>
+     <property name="usesScrollButtons">
+      <bool>true</bool>
+     </property>
+     <property name="documentMode">
+      <bool>true</bool>
+     </property>
+     <property name="movable">
+      <bool>true</bool>
      </property>
      <widget class="QWidget" name="packetConfigTab">
       <attribute name="title">
@@ -169,8 +178,8 @@ QLineEdit:enabled[inputMask = &quot;HH HH HH HH HH HH; &quot;] { background-colo
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>605</width>
-            <height>311</height>
+            <width>602</width>
+            <height>334</height>
            </rect>
           </property>
           <attribute name="label">
@@ -216,9 +225,9 @@ QLineEdit:enabled[inputMask = &quot;HH HH HH HH HH HH; &quot;] { background-colo
              </layout>
             </widget>
            </item>
-           <item rowspan="3" row="0" column="1" >
-            <widget class="QGroupBox" name="gbFrameType" >
-             <property name="enabled" >
+           <item row="0" column="1" rowspan="3">
+            <widget class="QGroupBox" name="gbFrameType">
+             <property name="enabled">
               <bool>true</bool>
              </property>
              <property name="title">
@@ -399,9 +408,9 @@ QLineEdit:enabled[inputMask = &quot;HH HH HH HH HH HH; &quot;] { background-colo
              </layout>
             </widget>
            </item>
-           <item rowspan="2" row="1" column="0" >
-            <widget class="QGroupBox" name="gbVlan" >
-             <property name="enabled" >
+           <item row="1" column="0" rowspan="2">
+            <widget class="QGroupBox" name="gbVlan">
+             <property name="enabled">
               <bool>true</bool>
              </property>
              <property name="title">
@@ -523,41 +532,41 @@ QLineEdit:enabled[inputMask = &quot;HH HH HH HH HH HH; &quot;] { background-colo
              </layout>
             </widget>
            </item>
-           <item row="2" column="2" >
-            <widget class="QGroupBox" name="gbL5Proto" >
-             <property name="enabled" >
+           <item row="2" column="2">
+            <widget class="QGroupBox" name="gbL5Proto">
+             <property name="enabled">
               <bool>true</bool>
              </property>
-             <property name="title" >
+             <property name="title">
               <string>L5</string>
              </property>
-             <layout class="QHBoxLayout" >
+             <layout class="QHBoxLayout">
               <item>
-               <widget class="QRadioButton" name="rbL5None" >
-                <property name="text" >
+               <widget class="QRadioButton" name="rbL5None">
+                <property name="text">
                  <string>None</string>
                 </property>
-                <property name="checked" >
+                <property name="checked">
                  <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="rbL5Text" >
-                <property name="enabled" >
+               <widget class="QRadioButton" name="rbL5Text">
+                <property name="enabled">
                  <bool>false</bool>
                 </property>
-                <property name="text" >
+                <property name="text">
                  <string>Text</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="rbL5Other" >
-                <property name="enabled" >
+               <widget class="QRadioButton" name="rbL5Other">
+                <property name="enabled">
                  <bool>false</bool>
                 </property>
-                <property name="text" >
+                <property name="text">
                  <string>Other</string>
                 </property>
                </widget>
@@ -565,9 +574,9 @@ QLineEdit:enabled[inputMask = &quot;HH HH HH HH HH HH; &quot;] { background-colo
              </layout>
             </widget>
            </item>
-           <item row="0" column="3" >
-            <widget class="QGroupBox" name="gbPayloadProto" >
-             <property name="enabled" >
+           <item row="0" column="3">
+            <widget class="QGroupBox" name="gbPayloadProto">
+             <property name="enabled">
               <bool>true</bool>
              </property>
              <property name="title">
@@ -614,28 +623,28 @@ QLineEdit:enabled[inputMask = &quot;HH HH HH HH HH HH; &quot;] { background-colo
              </layout>
             </widget>
            </item>
-           <item row="1" column="3" >
-            <widget class="QGroupBox" name="gbSpecial" >
-             <property name="enabled" >
+           <item row="1" column="3">
+            <widget class="QGroupBox" name="gbSpecial">
+             <property name="enabled">
               <bool>true</bool>
              </property>
-             <property name="title" >
+             <property name="title">
               <string>Special</string>
              </property>
-             <layout class="QVBoxLayout" >
+             <layout class="QVBoxLayout">
               <item>
-               <widget class="QRadioButton" name="rbSpecialNone" >
-                <property name="text" >
+               <widget class="QRadioButton" name="rbSpecialNone">
+                <property name="text">
                  <string>None</string>
                 </property>
-                <property name="checked" >
+                <property name="checked">
                  <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="rbSignature" >
-                <property name="text" >
+               <widget class="QRadioButton" name="rbSignature">
+                <property name="text">
                  <string>Signature</string>
                 </property>
                </widget>
@@ -643,31 +652,31 @@ QLineEdit:enabled[inputMask = &quot;HH HH HH HH HH HH; &quot;] { background-colo
              </layout>
             </widget>
            </item>
-           <item row="2" column="3" >
-            <widget class="QGroupBox" name="gbTrailer" >
-             <property name="enabled" >
+           <item row="2" column="3">
+            <widget class="QGroupBox" name="gbTrailer">
+             <property name="enabled">
               <bool>true</bool>
              </property>
-             <property name="title" >
+             <property name="title">
               <string>Trailer</string>
              </property>
-             <layout class="QVBoxLayout" >
+             <layout class="QVBoxLayout">
               <item>
-               <widget class="QRadioButton" name="rbTrailerNone" >
-                <property name="text" >
+               <widget class="QRadioButton" name="rbTrailerNone">
+                <property name="text">
                  <string>None</string>
                 </property>
-                <property name="checked" >
+                <property name="checked">
                  <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="rbTrailerOther" >
-                <property name="enabled" >
+               <widget class="QRadioButton" name="rbTrailerOther">
+                <property name="enabled">
                  <bool>false</bool>
                 </property>
-                <property name="text" >
+                <property name="text">
                  <string>Other</string>
                 </property>
                </widget>
@@ -695,8 +704,8 @@ QLineEdit:enabled[inputMask = &quot;HH HH HH HH HH HH; &quot;] { background-colo
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>250</width>
-            <height>135</height>
+            <width>611</width>
+            <height>305</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1246,6 +1255,9 @@ QLineEdit:enabled[inputMask = &quot;HH HH HH HH HH HH; &quot;] { background-colo
           <enum>Qt::Vertical</enum>
          </property>
          <widget class="QTreeView" name="tvPacketTree">
+          <property name="selectionMode">
+           <enum>QAbstractItemView::MultiSelection</enum>
+          </property>
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectItems</enum>
           </property>

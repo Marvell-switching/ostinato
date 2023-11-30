@@ -52,7 +52,9 @@ RpcConnection::RpcConnection(qintptr socketDescriptor,
     isPending = false;
     pendingMethodId = -1; // don't care as long as isPending is false
 
-    isCompatCheckDone = false;
+    //Oleg TODO always true
+    isCompatCheckDone = true;//false;
+
     isNotifEnabled = true;
 }
 

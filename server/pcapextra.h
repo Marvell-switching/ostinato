@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #ifndef _PCAP_EXTRA_H
 #define _PCAP_EXTRA_H
 
+#define HAVE_REMOTE 1
+
 #include <pcap.h>
 #include <QtGlobal>
 
@@ -45,6 +47,11 @@ void pcap_sendqueue_destroy (pcap_send_queue *queue);
 int pcap_sendqueue_queue (pcap_send_queue *queue, 
         const struct pcap_pkthdr *pkt_header, const u_char *pkt_data);
 
+#endif
+
+#ifdef Q_OS_WIN32
+// Gregory
+#include "Win32-Extensions.h"
 #endif
 
 #endif

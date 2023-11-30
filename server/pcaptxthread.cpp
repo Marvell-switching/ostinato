@@ -43,10 +43,15 @@ PcapTxThread::PcapTxThread(const char *device)
     stop_ = false;
     trackStreamStats_ = false;
     clearPacketList();
-    handle_ = pcap_open_live(device, 64 /* FIXME */, 0, 1000 /* ms */, errbuf);
+    //Oleg fix case no handle - slan
+    if (device)
+    {
+        handle_ = pcap_open_live(device, 64 /* FIXME */, 0, 1000 /* ms */, errbuf);
 
-    if (handle_ == NULL)
-        goto _open_error;
+        if (handle_ == NULL)
+            goto _open_error;
+    }
+
 
     usingInternalHandle_ = true;
 

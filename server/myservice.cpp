@@ -513,6 +513,34 @@ void MyService::stopTransmit(::google::protobuf::RpcController* /*controller*/,
     done->Run();
 }
 
+// GREGORY
+void MyService::singlePacketTransmit(::google::protobuf::RpcController* /*controller*/,
+    const ::OstProto::PortIdList* request,
+    ::OstProto::Ack* /*response*/,
+    ::google::protobuf::Closure* done)
+{
+    qDebug("In %s", __PRETTY_FUNCTION__);
+
+    for (int i = 0; i < request->port_id_size(); i++)
+    {
+        int portId;
+
+        portId = request->port_id(i).id();
+        if ((portId < 0) || (portId >= portInfo.size()))
+            continue;     //! \todo (LOW): partial RPC?
+
+        portLock[portId]->lockForWrite();
+        if (portInfo[portId]->isDirty())
+            portInfo[portId]->updatePacketList();
+        portInfo[portId]->singlePacketTransmit();
+        portLock[portId]->unlock();
+    }
+
+    //! \todo (LOW): fill-in response "Ack"????
+
+    done->Run();
+}
+
 void MyService::startCapture(::google::protobuf::RpcController* /*controller*/,
     const ::OstProto::PortIdList* request,
     ::OstProto::Ack* response,
@@ -653,6 +681,11 @@ void MyService::getStats(::google::protobuf::RpcController* /*controller*/,
         s->set_rx_pps(stats.rxPps);
         s->set_rx_bps(stats.rxBps);
 
+		s->set_triggered_rx_pkts1(stats.triggeredRxPkts1);
+		s->set_triggered_rx_pkts2(stats.triggeredRxPkts2);
+		s->set_triggered_rx_pkts3(stats.triggeredRxPkts3);
+		s->set_triggered_rx_pkts4(stats.triggeredRxPkts4);
+
         s->set_tx_pkts(stats.txPkts);
         s->set_tx_bytes(stats.txBytes);
         s->set_tx_pps(stats.txPps);
@@ -662,6 +695,7 @@ void MyService::getStats(::google::protobuf::RpcController* /*controller*/,
         s->set_rx_errors(stats.rxErrors);
         s->set_rx_fifo_errors(stats.rxFifoErrors);
         s->set_rx_frame_errors(stats.rxFrameErrors);
+		s->set_rx_oversize(stats.rxOversize);
     }
 
     done->Run();

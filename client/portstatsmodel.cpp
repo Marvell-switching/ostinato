@@ -137,10 +137,7 @@ QVariant PortStatsModel::data(const QModelIndex &index, int role) const
 
             // States
             case e_COMBO_STATE:
-                return QString("Link %1%2%3")
-                    .arg(LinkStateName.at(stats.state().link_state()))
-                    .arg(stats.state().is_transmit_on() ? ";Tx On" : "")
-                    .arg(stats.state().is_capture_on() ? ";Cap On" : "");
+                return QVariant();
 
             // Statistics
             case e_STAT_FRAMES_RCVD:
@@ -201,6 +198,19 @@ QVariant PortStatsModel::data(const QModelIndex &index, int role) const
                 return QString("%L1").arg(quint64(stats.rx_fifo_errors()));
             case e_STAT_RX_FRAME_ERRORS:
                 return QString("%L1").arg(quint64(stats.rx_frame_errors()));
+
+
+            case e_STAT_OVERSIZE_RCVD:
+                return QString("%L1").arg(quint64(stats.rx_oversize()));
+
+            case e_STAT_TRIGGERED_1_FRAMES_RCVD:
+                return QString("%L1").arg(quint64(stats.triggered_rx_pkts1()));
+            case e_STAT_TRIGGERED_2_FRAMES_RCVD:
+                return QString("%L1").arg(quint64(stats.triggered_rx_pkts2()));
+            case e_STAT_TRIGGERED_3_FRAMES_RCVD:
+                return QString("%L1").arg(quint64(stats.triggered_rx_pkts3()));
+            case e_STAT_TRIGGERED_4_FRAMES_RCVD:
+                return QString("%L1").arg(quint64(stats.triggered_rx_pkts4()));
 
             default:
                 qWarning("%s: Unhandled stats id %d\n", __FUNCTION__,

@@ -26,12 +26,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #include "devicemanager.h"
 #include "interfaceinfo.h"
 #include "packetbuffer.h"
+#include "streamtiming.h"
 
 #include <QString>
 #include <QIODevice>
 
 #include <limits.h>
 #include <math.h>
+
+// GREGORY
+#include <algorithm>
 
 AbstractPort::AbstractPort(int id, const char *device)
 {
@@ -43,6 +47,9 @@ AbstractPort::AbstractPort(int id, const char *device)
     data_.set_is_enabled(true);
 
     data_.set_is_exclusive_control(false);
+
+	// GREGORY
+	data_.set_is_soft_crc(false);
 
     isSendQueueDirty_ = false;
     rateAccuracy_ = kHighAccuracy;
@@ -128,6 +135,26 @@ bool AbstractPort::modify(const OstProto::Port &port)
     if (port.has_user_name()) {
         data_.set_user_name(port.user_name());
     }
+
+	if (port.has_user_trigger1()) 
+	{
+		data_.set_allocated_user_trigger1(  new ::OstProto::Trigger( port.user_trigger1() ) );
+	}
+
+	if (port.has_user_trigger2()) 
+	{
+		data_.set_allocated_user_trigger2( new ::OstProto::Trigger( port.user_trigger2() ) );
+	}
+
+	if (port.has_user_trigger3()) 
+	{
+		data_.set_allocated_user_trigger3( new ::OstProto::Trigger( port.user_trigger3() ) );
+	}
+
+	if (port.has_user_trigger4()) 
+	{
+		data_.set_allocated_user_trigger4(  new ::OstProto::Trigger( port.user_trigger4() ) );
+	}
 
     return ret;
 }    
@@ -862,6 +889,21 @@ void AbstractPort::stats(PortStats *stats)
     stats->rxPps = stats_.rxPps;
     stats->rxBps = stats_.rxBps;
 
+	stats->rxOversize = stats_.rxOversize;
+
+	stats->triggeredRxPkts1 = (stats_.triggeredRxPkts1 >= epochStats_.triggeredRxPkts1) ?
+                        stats_.triggeredRxPkts1 - epochStats_.triggeredRxPkts1 :
+                        stats_.triggeredRxPkts1 + (maxStatsValue_ - epochStats_.triggeredRxPkts1);
+	stats->triggeredRxPkts2 = (stats_.triggeredRxPkts2 >= epochStats_.triggeredRxPkts2) ?
+                        stats_.triggeredRxPkts2 - epochStats_.triggeredRxPkts2 :
+                        stats_.triggeredRxPkts2 + (maxStatsValue_ - epochStats_.triggeredRxPkts2);
+	stats->triggeredRxPkts3 = (stats_.triggeredRxPkts3 >= epochStats_.triggeredRxPkts3) ?
+                        stats_.triggeredRxPkts3 - epochStats_.triggeredRxPkts3 :
+                        stats_.triggeredRxPkts3 + (maxStatsValue_ - epochStats_.triggeredRxPkts3);
+	stats->triggeredRxPkts4 = (stats_.triggeredRxPkts4 >= epochStats_.triggeredRxPkts4) ?
+                        stats_.triggeredRxPkts4 - epochStats_.triggeredRxPkts4 :
+                        stats_.triggeredRxPkts4 + (maxStatsValue_ - epochStats_.triggeredRxPkts4);
+
     stats->txPkts = (stats_.txPkts >= epochStats_.txPkts) ?
                         stats_.txPkts - epochStats_.txPkts :
                         stats_.txPkts + (maxStatsValue_ - epochStats_.txPkts);
@@ -885,9 +927,9 @@ void AbstractPort::stats(PortStats *stats)
                         stats_.rxFrameErrors + (maxStatsValue_ - epochStats_.rxFrameErrors);
 }
 
-StreamTiming::Stats AbstractPort::streamTimingStats(uint guid)
+quint64 AbstractPort::streamTimingDelay(uint guid)
 {
-    return streamTiming_->stats(id(), guid);
+    return streamTiming_->delay(id(), guid);
 }
 
 void AbstractPort::clearStreamTiming(uint guid)
@@ -908,14 +950,12 @@ void AbstractPort::streamStats(uint guid, OstProto::StreamStatsList *stats)
     {
         StreamStatsTuple sst = streamStats_.value(guid);
         OstProto::StreamStats *s = stats->add_stream_stats();
-        StreamTiming::Stats t = streamTimingStats(guid);
 
         s->mutable_stream_guid()->set_id(guid);
         s->mutable_port_id()->set_id(id());
 
         s->set_tx_duration(lastTransmitDuration());
-        s->set_latency(t.latency);
-        s->set_jitter(t.jitter);
+        s->set_latency(streamTimingDelay(guid));
 
         s->set_tx_pkts(sst.tx_pkts);
         s->set_tx_bytes(sst.tx_bytes);
@@ -942,14 +982,12 @@ void AbstractPort::streamStatsAll(OstProto::StreamStatsList *stats)
         i.next();
         StreamStatsTuple sst = i.value();
         OstProto::StreamStats *s = stats->add_stream_stats();
-        StreamTiming::Stats t = streamTimingStats(i.key());
 
         s->mutable_stream_guid()->set_id(i.key());
         s->mutable_port_id()->set_id(id());
 
         s->set_tx_duration(txDur);
-        s->set_latency(t.latency);
-        s->set_jitter(t.jitter);
+        s->set_latency(streamTimingDelay(i.key()));
 
         s->set_tx_pkts(sst.tx_pkts);
         s->set_tx_bytes(sst.tx_bytes);
@@ -1051,6 +1089,74 @@ quint64 AbstractPort::neighborMacAddress(int streamId, int frameIndex)
     return 0;
 }
 
+// GREGORY
+void AbstractPort::matchPacketTrigger(
+	const OstProto::Trigger& userTrigger, unsigned int len, const uchar *data, quint64& triggeredPkts)
+{
+	bool isTriggerMatched = false;
+
+	int termsSize = userTrigger.terms_size();
+	if (termsSize > 0)
+	{
+		isTriggerMatched = true;
+
+		for (int t=0; t < termsSize && isTriggerMatched; ++t)
+		{
+			OstProto::TriggerTerm triggerTerm = userTrigger.terms(t);
+			int offset = triggerTerm.offset();
+			std::string pattern = triggerTerm.pattern();
+			std::string mask = triggerTerm.mask();
+			bool isNot = triggerTerm.is_not();
+
+			// Remove spaces from hex strings
+			pattern.erase(remove_if(pattern.begin(), pattern.end(), isspace), pattern.end());
+			mask.erase(remove_if(mask.begin(), mask.end(), isspace), mask.end());
+
+			int packetLen = len;
+
+			QByteArray patternBytes = QByteArray::fromHex( pattern.c_str() );
+			QByteArray maskBytes = QByteArray::fromHex( mask.c_str() );
+							
+			if (offset + patternBytes.size() <= packetLen)
+			{
+				if (maskBytes.size() < patternBytes.size())
+				{
+					int maskPaddingSize  = patternBytes.size() - maskBytes.size();
+					maskBytes.append( QByteArray(maskPaddingSize, 0xff /*char((1<<8)-1)*/) );
+				}
+
+				bool isTermPatternMatched = true;
+
+				for (int b=0; b < patternBytes.size(); ++b)
+				{
+					uchar patternByte = patternBytes[b];
+
+					if (((patternByte ^ data[offset + b]) & maskBytes[b]) != 0)
+					{
+						isTermPatternMatched = false;
+						break;
+					}
+				}
+
+				if ( (isTermPatternMatched && isNot) || ((! isTermPatternMatched) && (! isNot)) )
+				{
+					isTriggerMatched = false;
+					break;
+				}
+			}
+			else
+			{
+				isTriggerMatched = false;
+				break;
+			}
+		}
+	}
+
+	if (isTriggerMatched)
+	{
+		++triggeredPkts;
+    }
+}
 const InterfaceInfo* AbstractPort::interfaceInfo() const
 {
     return interfaceInfo_;

@@ -28,7 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #include <QThread>
 #include <pcap.h>
 
-class PcapTxThread: public QThread
+#include "ITxThread.h"
+
+class PcapTxThread: public ITxThread
 {
 public:
     PcapTxThread(const char *device);
@@ -58,7 +60,7 @@ public:
     bool isRunning();
     double lastTxDuration();
 
-private:
+protected:
     enum State
     {
         kNotStarted,

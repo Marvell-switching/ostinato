@@ -36,6 +36,8 @@ public:
     WinPcapPort(int id, const char *device, const char *description);
     ~WinPcapPort();
 
+	void init();
+
     virtual OstProto::LinkState linkState();
     virtual bool hasExclusiveControl();
     virtual bool setExclusiveControl(bool exclusive);
@@ -51,7 +53,32 @@ protected:
                 AbstractPort::PortStats *stats);
         void run();
     };
+	class PortFullPackageMonitor: public PcapPort::PortMonitor 
+    {
+    public:
+        PortFullPackageMonitor(const char *device, Direction direction,
+                AbstractPort::PortStats *stats, const WinPcapPort* port);
+        void run();
+
+	private:
+		const WinPcapPort* port_;
+    };
+
+	class PortCapturer: public PcapPort::PortCapturer 
+    {
+    public:
+        PortCapturer(const char *device, WinPcapPort* winPcapPort);
+        virtual void configCapture(pcap_t *handle_);
+
+	private:
+		WinPcapPort* m_winPcapPort;
+    };
+	
 private:
+	// GREGORY
+	QString getMacAddress();
+	void pcapFilterLocalAdapter(pcap_t *handle);
+	PortFullPackageMonitor *monitorRxFullPackage_;
     void populateInterfaceInfo();
 
     LPADAPTER adapter_;

@@ -29,7 +29,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #include <QCoreApplication>
 #include <QFile>
 
+#ifdef Q_OS_UNIX
 #include <signal.h>
+#endif
 
 extern ProtocolManager *OstProtocolManager;
 extern char *version;

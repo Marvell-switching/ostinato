@@ -80,6 +80,11 @@ public:
         const ::OstProto::PortIdList* request,
         ::OstProto::Ack* response,
         ::google::protobuf::Closure* done);
+	// GREGORY
+	virtual void singlePacketTransmit(::google::protobuf::RpcController* /*controller*/,
+		const ::OstProto::PortIdList* request,
+		::OstProto::Ack* /*response*/,
+		::google::protobuf::Closure* done);
     virtual void startCapture(::google::protobuf::RpcController* controller,
         const ::OstProto::PortIdList* request,
         ::OstProto::Ack* response,

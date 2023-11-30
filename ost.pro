@@ -1,5 +1,6 @@
 TEMPLATE = subdirs
-SUBDIRS = client server ostproto ostprotogui rpc extra
+SUBDIRS = client server ostproto ostprotogui rpc extra \
+    SLAN/SLAN
 
 client.target = client
 client.file = client/ostinato.pro

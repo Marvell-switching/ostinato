@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 #include <QTemporaryFile>
 #include <QThread>
+#define HAVE_REMOTE 1 // Gregory
 #include <pcap.h>
 
 #include "abstractport.h"
@@ -75,6 +76,13 @@ public:
     }
     virtual void stopTransmit()  { transmitter_->stop();  }
     virtual bool isTransmitOn() { return transmitter_->isRunning(); }
+
+	// GREGORY
+	virtual void singlePacketTransmit() { 
+        Q_ASSERT(!isDirty());
+        transmitter_->singlePacketTransmit(); 
+    }
+	
     virtual double lastTransmitDuration() {
         return transmitter_->lastTxDuration();
     }
@@ -145,6 +153,8 @@ protected:
         volatile State  state_;
     };
 
+protected:
+
     class EmulationTransceiver: public PcapSession
     {
     public:
@@ -172,7 +182,8 @@ protected:
 
     PortMonitor     *monitorRx_;
     PortMonitor     *monitorTx_;
-
+	// GREGORY
+	PortCapturer    *capturer_;
     PcapRxStats *rxStatsPoller_;
 
     void updateNotes();
@@ -182,7 +193,7 @@ private:
     bool stopStreamStatsTracking();
 
     PcapTransmitter *transmitter_;
-    PortCapturer    *capturer_;
+    //PortCapturer    *capturer_;
     EmulationTransceiver *emulXcvr_;
     PcapTxTtagStats *txTtagStatsPoller_;
 

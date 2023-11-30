@@ -173,6 +173,13 @@
             </spacer>
            </item>
            <item>
+            <widget class="QPushButton" name="bpRefresh">
+             <property name="text">
+              <string>Refresh</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QLabel" name="applyHint">
              <property name="text">
               <string>Apply Hint</string>

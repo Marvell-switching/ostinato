@@ -58,7 +58,6 @@ private:
         quint64 rxBytes;
         quint64 txBytes;
         quint64 rxLatency;
-        quint64 rxJitter;
     };
     struct AggrGuidStats {
         quint64 rxPkts;
@@ -68,7 +67,6 @@ private:
         qint64 pktLoss;
         double txDuration;
         quint64 latencySum;
-        quint64 jitterSum;
         uint latencyCount;
     };
     QList<Guid> guidList_;

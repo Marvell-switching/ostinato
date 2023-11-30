@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #include "pcapextra.h"
 #include "../common/debugdefs.h"
 #include "../common/sign.h"
-#include "settings.h"
 #include "streamtiming.h"
 
 #define Xnotify qWarning // FIXME
@@ -57,20 +56,6 @@ void PcapRxStats::run()
             SignProtocol::magic(), 0, BASE_HEX);
     // XXX: Exclude ICMP packets which contain an embedded signed packet
     //      For now we check upto 4 vlan tags
-    // XXX: libpcap for Linux has a special bpf vlan check which generates
-    //      incorrect BPF instructions for our capture filter expression,
-    //      so we modify it to work correctly
-    //      See https://srivatsp.com/ostinato/ostinato-rx-stream-stats-zero/
-#ifdef Q_OS_LINUX
-    capture_filter.prepend(
-        "not ("
-            "icmp or "
-            "(vlan and icmp) or "
-            "(vlan and icmp) or "
-            "(vlan and icmp) or "
-            "(vlan and icmp) "
-        ") and ");
-#else
     capture_filter.append(
         "and not ("
             "icmp or "
@@ -79,15 +64,8 @@ void PcapRxStats::run()
             "(vlan and icmp) or "
             "(vlan and icmp) "
         ")");
-#endif
-
-    // Override filter expression if one is specified in .ini
-    if (appSettings->contains(kInternalRxStatsFilterKey))
-        capture_filter = appSettings->value(kInternalRxStatsFilterKey)
-                            .toString();
 
     qDebug("In %s", __PRETTY_FUNCTION__);
-    qDebug("RxStats Filter: %s", qPrintable(capture_filter));
 
     handle_ = pcap_open_live(qPrintable(device_), 65535,
                     flags, 100 /* ms */, errbuf);

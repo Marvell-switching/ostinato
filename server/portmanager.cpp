@@ -30,6 +30,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #include <QHostAddress>
 #include <QStringList>
 
+// GREGORY
+#include "slanport.h"
+#include "SlanCfgReader.h"
+
 PortManager *PortManager::instance_ = NULL;
 
 #if defined(Q_OS_WIN32)
@@ -69,7 +73,7 @@ PortManager::PortManager()
 
     txRateAccuracy = rateAccuracy();
 
-    pcap_if_t *deviceList = GetPortList();
+    pcap_if_t *deviceList = 0; //Oleg TODO GetPortList();
 
     for(device = deviceList, i = 0; device != NULL; device = device->next, i++)
     {
@@ -136,7 +140,42 @@ PortManager::PortManager()
         portList_.append(port);
     }
 
-    FreePortList(deviceList);
+    //Oleg TODO FreePortList(deviceList);
+	// GREGORY
+	// SLAN ports processsing
+	StringVector slanPortsList;
+	const char* slanCfgFile = "slan.cfg";
+
+	if ( readSlanCfgFile(slanCfgFile, slanPortsList) )
+	{
+		//const char* slanPorts[] = {"SLAN00", "SLAN00"};
+		//unsigned int slanPortsLen = sizeof(slanPorts) / sizeof(slanPorts[0]); 
+		//for (unsigned int i=0; i < slanPortsLen; ++i)
+		for (unsigned int i=0; i < slanPortsList.size(); ++i)
+		{
+			AbstractPort *slanPort = new SlanPort(portList_.size(), slanPortsList[i].c_str());
+			if ( slanPort->isUsable())
+			{
+				if (!slanPort->setRateAccuracy(txRateAccuracy))
+				{
+					qWarning("failed to set rateAccuracy (%d)", txRateAccuracy);
+				}
+
+				portList_.append(slanPort);
+
+				qWarning("Created slan port %s", slanPortsList[i].c_str());
+			}
+			else
+			{
+				qDebug("%s: unable to open %s. Skipping!", __FUNCTION__, slanPort->name());
+				delete slanPort;
+			}
+		}
+	}
+	else
+	{
+        qWarning("Failed to read slan configuration file '%s'", slanCfgFile);
+	}
 
     foreach(AbstractPort *port, portList_)
         port->init();

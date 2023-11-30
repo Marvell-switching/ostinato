@@ -80,8 +80,16 @@ static void inline getTimeStamp(TimeStamp* stamp)
 
 static long inline udiffTimeStamp(const TimeStamp *start, const TimeStamp *end)
 {
+    return 0;
     if (end->QuadPart >= start->QuadPart)
+    {
+        //OLEG TODO ;
+        auto x = end->QuadPart - start->QuadPart;
+        x *= long(1e6);
+        x /= 100000;
+        return x;
         return (end->QuadPart - start->QuadPart)*long(1e6)/gTicksFreq;
+    }
     else
     {
         // FIXME: incorrect! what's the max value for this counter before

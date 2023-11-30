@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 #include "pcaptransmitter.h"
 
 PcapTransmitter::PcapTransmitter(
-        const char *device)
-    : txThread_(device)
+        const char *device,ITxThread* txThread)
+    :txThread_(txThread ? *txThread : *new PcapTxThread(device))
 {
     adjustRxStreamStats_ = false;
     txStats_.setObjectName(QString("TxStats:%1").arg(device));
@@ -122,6 +122,20 @@ bool PcapTransmitter::setPacketListTtagMarkers(
 void PcapTransmitter::useExternalStats(AbstractPort::PortStats *stats)
 {
     txStats_.useExternalStats(stats);
+}
+
+// GREGORY
+void PcapTransmitter::transmit()
+{
+	isSinglePacketMode_ = false;
+    start();
+}
+
+// GREGORY
+void PcapTransmitter::singlePacketTransmit()
+{
+	isSinglePacketMode_ = true;
+    start();
 }
 
 void PcapTransmitter::start()

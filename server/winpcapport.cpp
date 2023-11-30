@@ -44,8 +44,18 @@ WinPcapPort::WinPcapPort(int id, const char *device, const char *description)
     delete monitorRx_;
     delete monitorTx_;
 
+	// GREGORY
+	capturer_->stop();
+	capturer_->wait();
+	delete capturer_;
+
     monitorRx_ = new PortMonitor(device, kDirectionRx, &stats_);
     monitorTx_ = new PortMonitor(device, kDirectionTx, &stats_);
+
+
+	capturer_ = new PortCapturer(device, this);
+
+	monitorRxFullPackage_ = new PortFullPackageMonitor(device, kDirectionRx, &stats_, this);
 
     data_.set_description(description);
 
@@ -59,10 +69,109 @@ WinPcapPort::WinPcapPort(int id, const char *device, const char *description)
 
     data_.set_is_exclusive_control(hasExclusiveControl());
     minPacketSetSize_ = 256;
+
+	// GREGORY
+	pcapFilterLocalAdapter(monitorRx_->handle());
+	pcapFilterLocalAdapter(monitorTx_->handle());
+	pcapFilterLocalAdapter(monitorRxFullPackage_->handle());
 }
 
 WinPcapPort::~WinPcapPort()
 {
+	if (monitorRxFullPackage_)
+	{
+        monitorRxFullPackage_->stop();
+        monitorRx_->wait();
+		delete monitorRxFullPackage_;
+	}
+}
+
+// GREGORY
+void WinPcapPort::init()
+{
+	PcapPort::init();
+
+    monitorRxFullPackage_->start();
+
+}
+
+// GREGORY
+QString WinPcapPort::getMacAddress()
+{
+	PPACKET_OID_DATA macAddrOid = (PPACKET_OID_DATA) malloc(sizeof(PACKET_OID_DATA) + sizeof(uint));
+    if (! macAddrOid)
+	{
+        qFatal("failed to alloc oidData");
+		return "";
+	}
+
+    memset(macAddrOid, 0, sizeof(PACKET_OID_DATA) + sizeof(uint));
+
+	macAddrOid->Oid = OID_802_3_CURRENT_ADDRESS;
+
+	macAddrOid->Length = 6;
+	 
+	char* macAddrBuf = (char*) malloc(100 + sizeof(char));
+	QString macAddr = "";
+
+    if (PacketRequest(adapter_, 0, macAddrOid))
+    {
+		sprintf(macAddrBuf, "%.2x:%.2x:%.2x:%.2x:%.2x:%.2x",
+			(macAddrOid->Data)[0],
+			(macAddrOid->Data)[1],
+			(macAddrOid->Data)[2],
+			(macAddrOid->Data)[3],
+			(macAddrOid->Data)[4],
+			(macAddrOid->Data)[5]);
+
+		macAddr = macAddrBuf;
+    }
+	else
+	{
+		qWarning("Failed to get MAC address of the adapter %s\n", adapter_->Name);
+	}
+
+	free(macAddrBuf);
+	free(macAddrOid);
+
+	qWarning("The MAC address of the adapter %s is %s\n", adapter_->Name, qPrintable(macAddr));
+
+    return macAddr;
+}
+
+// GREGORY
+void WinPcapPort::pcapFilterLocalAdapter(pcap_t *handle)
+{
+	const char* device = adapter_->Name;
+
+	const int optimize = 1;
+	struct bpf_program bpf;
+	QString macAddr = getMacAddress();
+	if ( macAddr.isEmpty() )
+	{
+		return;
+	}
+
+	QString capture_filter( QString("not ether src ") + macAddr );
+
+
+    //Oleg FIX obsolet Ascii
+    QString qdevice = QString::fromLatin1(device); //QString::fromAscii(device);
+
+    //if (pcap_compile(handle, &bpf, capture_filter.toAscii().data(), optimize, 0xffffffff) < 0)
+    if (pcap_compile(handle, &bpf, capture_filter.toLatin1().data(), optimize, 0xffffffff) < 0)
+    {
+        qWarning("%s: error compiling filter: %s", qPrintable(qdevice),
+                pcap_geterr(handle));
+    }
+	else
+	{
+		if (pcap_setfilter(handle, &bpf) < 0)
+		{
+			qWarning("%s: error setting filter: %s", qPrintable(qdevice),
+					pcap_geterr(handle));
+		}
+	}
 }
 
 OstProto::LinkState WinPcapPort::linkState()
@@ -229,6 +338,9 @@ void WinPcapPort::PortMonitor::run()
             case -1:
                 qWarning("%s: error reading packet (%d): %s", 
                         __PRETTY_FUNCTION__, ret, pcap_geterr(handle()));
+				//oleg fix
+				//qWarning("count %d: case (%d)",count, -1);
+				QThread::msleep(5000);
                 break;
             case -2:
                 qWarning("%s: error reading packet (%d): %s", 
@@ -243,6 +355,18 @@ void WinPcapPort::PortMonitor::run()
             QThread::msleep(1000);
     }
 }
+
+WinPcapPort::PortFullPackageMonitor::PortFullPackageMonitor(const char *device, Direction direction,
+    AbstractPort::PortStats *stats, const WinPcapPort* port)
+    : PcapPort::PortMonitor(device, direction, stats), port_(port)
+{
+}
+
+//OLEG todo not implemented
+void WinPcapPort::PortFullPackageMonitor::run()
+{}
+
+
 
 void WinPcapPort::populateInterfaceInfo()
 {
@@ -355,5 +479,16 @@ void WinPcapPort::freeHostNetworkInfo()
     free(adapterList_);
     adapterList_ = NULL;
 }
+
+WinPcapPort::PortCapturer::PortCapturer(const char *device, WinPcapPort* winPcapPort) :
+    PcapPort::PortCapturer(device), m_winPcapPort(winPcapPort)
+{
+}
+
+void WinPcapPort::PortCapturer::configCapture(pcap_t *handle_)
+{
+    m_winPcapPort->pcapFilterLocalAdapter(handle_);
+}
+
 
 #endif

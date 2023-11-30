@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 #include "../common/protocol.pb.h"
 #include "streamstats.h"
-#include "streamtiming.h"
 
 #include <QList>
 #include <QReadWriteLock>
@@ -35,6 +34,7 @@ struct InterfaceInfo;
 class PacketBuffer;
 class QIODevice;
 class StreamBase;
+class StreamTiming;
 
 // TODO: send notification back to client(s)
 #define Xnotify qWarning
@@ -49,6 +49,8 @@ public:
         quint64    rxPps;
         quint64    rxBps;
 
+		quint64 rxOversize;
+
         quint64    rxDrops;
         quint64    rxErrors;
         quint64    rxFifoErrors;
@@ -58,6 +60,11 @@ public:
         quint64    txBytes;
         quint64    txPps;
         quint64    txBps;
+
+		quint64    triggeredRxPkts1;
+		quint64    triggeredRxPkts2;
+		quint64    triggeredRxPkts3;
+		quint64    triggeredRxPkts4;
     };
 
     enum Accuracy
@@ -76,6 +83,16 @@ public:
 
     int id() { return data_.port_id().id(); }
     const char* name() { return data_.name().c_str(); }
+
+	// GREGORY
+	const OstProto::Trigger& userTrigger1() const { return data_.user_trigger1(); }
+	const OstProto::Trigger& userTrigger2() const { return data_.user_trigger2(); }
+	const OstProto::Trigger& userTrigger3() const { return data_.user_trigger3(); }
+	const OstProto::Trigger& userTrigger4() const { return data_.user_trigger4(); }
+	// GREGORY
+	static void matchPacketTrigger(
+		const OstProto::Trigger& userTrigger, unsigned int len, const uchar *data, quint64& triggeredPkts);
+
     void protoDataCopyInto(OstProto::Port *port) { port->CopyFrom(data_); }
 
     bool canModify(const OstProto::Port &port, bool *dirty);
@@ -115,6 +132,8 @@ public:
     virtual void startTransmit() = 0;
     virtual void stopTransmit() = 0;
     virtual bool isTransmitOn() = 0;
+	// GREGORY
+    virtual void singlePacketTransmit() = 0;
     virtual double lastTransmitDuration() = 0;
 
     virtual void startCapture() = 0;
@@ -125,7 +144,7 @@ public:
     void stats(PortStats *stats);
     void resetStats() { epochStats_ = stats_; }
 
-    StreamTiming::Stats streamTimingStats(uint guid);
+    quint64 streamTimingDelay(uint guid);
     void clearStreamTiming(uint guid = UINT_MAX);
 
     // FIXME: combine single and All calls?
@@ -173,6 +192,7 @@ protected:
     DeviceManager *deviceManager_;
 
 private:
+	friend class PortManager;
     bool    isSendQueueDirty_;
 
     static const int kMaxPktSize = 16384;

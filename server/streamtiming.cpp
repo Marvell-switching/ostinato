@@ -62,10 +62,8 @@ void StreamTiming::stop(uint portId)
     }
 }
 
-StreamTiming::Stats StreamTiming::stats(uint portId, uint guid)
+quint64 StreamTiming::delay(uint portId, uint guid)
 {
-    Stats stats = {0, 0};
-
     Q_ASSERT(guid <= SignProtocol::kMaxGuid);
 
     // Process anything pending first
@@ -74,17 +72,13 @@ StreamTiming::Stats StreamTiming::stats(uint portId, uint guid)
     QMutexLocker locker(&timingLock_);
 
     if (!timing_.contains(portId))
-        return stats;
+        return 0;
 
     Timing t = timing_.value(portId)->value(guid);
     if (t.countDelays == 0)
-        return stats;
+        return 0;
 
-    stats.latency = timespecToNsecs(t.sumDelays)/t.countDelays;
-    if (t.countDelays > 1)
-        stats.jitter = t.sumJitter/(t.countDelays-1);
-
-    return stats;
+    return timespecToNsecs(t.sumDelays)/t.countDelays;
 }
 
 void StreamTiming::clear(uint portId, uint guid)
@@ -101,7 +95,7 @@ void StreamTiming::clear(uint portId, uint guid)
     if (!portTiming)
         return;
 
-    if (guid >= SignProtocol::kInvalidGuid)
+    if (guid == SignProtocol::kInvalidGuid)
         portTiming->clear();      // remove ALL guids
     else
         portTiming->remove(guid);
@@ -133,12 +127,6 @@ int StreamTiming::processRecords()
             PortTiming *portTiming = timing_.value(portId);
             Timing &guidTiming = (*portTiming)[guid];
             timespecadd(&guidTiming.sumDelays, &diff, &guidTiming.sumDelays);
-            if (guidTiming.countDelays)
-                guidTiming.sumJitter += abs(
-                        diff.tv_sec*long(1e9) + diff.tv_nsec
-                        - guidTiming.lastDelay.tv_sec*long(1e9)
-                        - guidTiming.lastDelay.tv_nsec);
-            guidTiming.lastDelay = diff;
             guidTiming.countDelays++;
 
             count++;
@@ -148,10 +136,10 @@ int StreamTiming::processRecords()
                 diff.tv_sec, diff.tv_nsec,
                 rxTime.tv_sec, rxTime.tv_nsec,
                 txTime.tv_sec, txTime.tv_nsec);
-            timingDebug("[%u/%u](%d) total %ld.%09ld count %u jittersum %09llu",
+            timingDebug("[%u/%u](%d) total %ld.%09ld count %u",
                 i.value().portId, guid, count,
                 guidTiming.sumDelays.tv_sec, guidTiming.sumDelays.tv_nsec,
-                guidTiming.countDelays, guidTiming.sumJitter);
+                guidTiming.countDelays);
         }
         i = rxHash_.erase(i);
     }
