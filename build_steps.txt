@@ -1,0 +1,6 @@
+1)"/usr/lib/qt5/bin/qmake" /local/store/git/GitHub/Ostinato_fork/ost.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
+
+2)"/usr/bin/make" -f /local/store/git/GitHub/Ostinato_fork/Makefile qmake_all
+cd common/ && /usr/lib/qt5/bin/qmake -o Makefile.ostproto /local/store/git/GitHub/Ostinato_fork/common/ostproto.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
+
+3)make
