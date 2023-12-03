@@ -31,8 +31,6 @@ INCLUDEPATH += C:\git\Central\MTS_utils\repeater
 INCLUDEPATH += C:\git\Central\MTS_utils\repeater\sagent\exp
 INCLUDEPATH += C:\git\Central\MTS_utils\repeater\common
 } else {
-INCLUDEPATH += $$PWD/../../../../git/pss_unix_utils/
-INCLUDEPATH += /local/store/git/Central/pss_unix_utils/
 }
 # Default rules for deployment.
 unix {
@@ -49,6 +47,6 @@ SOURCES += C:\git\Central\MTS_utils\repeater\sagent\sagent.c
 SOURCES += C:\git\Central\MTS_utils\repeater\common\stubs\stubs.c
 } else {
 SOURCES += \
-    /local/store/git/Central/pss_unix_utils/slanLib.c
+    slanLib.c
 }
 SOURCES +=stubs.c
